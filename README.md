@@ -31,6 +31,7 @@ Ensure the following R-libraries (and their dependencies) are installed:
    * sp
    * raster
    * rgdal
+   * tripack
    * ncdf4 (optional, used only if additional geographical information are required)
 
 
