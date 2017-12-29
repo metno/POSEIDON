@@ -1,5 +1,5 @@
 # POSEIDON
-PrecipitatiOn SpatIal Data quality CONtrol
+(almost) Acronym of _PrecipitatiOn SpatIal Data quality CONtrol_
 
 Available checks are (applied sequentially as in this list):
 
