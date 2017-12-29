@@ -9,6 +9,8 @@ Available checks are (applied sequentially as in this list):
 
 * check for isolated dry observations
 
+* check for dry observations by comparing against a first-guess field
+
 * check for isolated wet observations
 
 * Buddy-check
