@@ -1418,17 +1418,21 @@ if (!is.na(argv$file.fg)) {
       susi<-which(dqcflag[ix]==fg.code)
       png(file=f,width=800,height=800)
       plot(ttot,rrfg,
-           xlim=c(min(c(ttot,rrfg),na.rm=T),
-                  max(c(ttot,rrfg),na.rm=T)),
-           ylim=c(min(c(ttot,rrfg),na.rm=T),
-                  max(c(ttot,rrfg),na.rm=T)),
-           main=paste("/ #sus=",length(susi)),
+#           xlim=c(min(c(ttot,rrfg),na.rm=T),
+#                  max(c(ttot,rrfg),na.rm=T)),
+#           ylim=c(min(c(ttot,rrfg),na.rm=T),
+#                  max(c(ttot,rrfg),na.rm=T)),
+           xlim=c(0,6),
+           ylim=c(0,6),
+#           main=paste("/ #sus=",length(susi)),
+           main="",
            xlab="Observations (mm)",
-           ylab="First guess (mm)" )
+           ylab="First guess (mm)",col="white" )
+      points(ttot,rrfg,pch=19,col="black")
       lines(-100:100,-100:100,col="gray")
       points(ttot[susi],rrfg[susi],pch=19,col="red")
-      abline(h=seq(-1000,10000,by=10),col="gray",lty=2)
-      abline(v=seq(-1000,10000,by=10),col="gray",lty=2)
+      abline(h=seq(-1000,10000,by=2.5),col="gray",lty=2)
+      abline(v=seq(-1000,10000,by=2.5),col="gray",lty=2)
       abline(h=0,lwd=2,col="gray",lty=1)
       abline(v=0,lwd=2,col="gray",lty=1)
       dev.off()
@@ -1465,7 +1469,9 @@ if (!is.na(argv$file.fg)) {
         wet<-which(data$value>=argv$rr.fg & is.na(dqcflag))
         dry<-which(data$value<argv$rr.fg & is.na(dqcflag))
         points(x[wet],y[wet],pch=19,col="blue",cex=2)
+        points(x[wet],y[wet],pch=1,col="black",cex=2)
         points(x[dry],y[dry],pch=15,col="orange",cex=2)
+        points(x[dry],y[dry],pch=0,col="black",cex=2)
         points(x[susi],y[susi],pch=17,col="red",cex=2)
         points(x[susi],y[susi],pch=2,col="black",cex=2)
         dev.off()
@@ -1553,7 +1559,6 @@ if (argv$debug) {
 if (argv$verbose | argv$debug) 
   print("+---------------------------------+")
 options(warn = 2, scipen = 999)
-q()
 #
 #-----------------------------------------------------------------------------
 # buddy check 
