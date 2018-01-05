@@ -55,7 +55,7 @@ nstat<-function(xy,drmin) {
 }
 
 #+ summary statistics in a box of /pm "drmin" centered on location "ixyz" 
-statSpat<-function(ixyzt,drmin) {
+statSpat<-function(ixyzt,drmin,tcor.flag=T,gamma=-0.0065) {
 # input
 # ixyz=vector. 1=index;2=x;3=y;4=z;5=t
 # output
@@ -66,8 +66,12 @@ statSpat<-function(ixyzt,drmin) {
   i<-which(abs(ixyzt[2]-xtot)<=drmin & 
            abs(ixyzt[3]-ytot)<=drmin)
   if (length(i)==1) return(c(1,NA,NA,NA))
-  dz<-ztot[i]-ixyzt[4]
-  tcor<-ttot[i]+0.0065*dz
+  dz<-ixyzt[4]-ztot[i]
+  if (tcor.flag) {
+    tcor<-ttot[i]+gamma*dz
+  } else {
+    tcor<-ttot[i]
+  }
   tmean<-mean(tcor) 
   tsd<-sd(tcor)
   dz_mx<-max(abs(dz))
@@ -258,28 +262,28 @@ sct<-function(ixynp,
     gold<-which(dqctmp==keep.code)
     if (!dir.exists(argv$debug.dir)) 
       dir.create(argv$debug.dir,showWarnings=F,recursive=T)
+#    f<-file.path(argv$debug.dir,
+#         paste("poseidon_sctm_it_",formatC(i,width=2,flag="0"),
+#               "_subd",formatC(ixynp[1],width=5,flag="0"),".png",sep=""))
+#    png(file=f,width=800,height=800)
+#    plot(to,tb,xlim=c(max(-30,min(to)),min(30,max(to))),
+#                   ylim=c(0,min(2000,max(zopt))) )
+#    zz<-seq(0,2000,by=0.1)
+#    if (dz<dzmin | ixynp[4]<nmin) {
+#      points(tvertprof_basic(zz,t0=opt$minimum,gamma=gamma.standard),
+#             zz,col="blue",pch=19,cex=0.5)
+#    } else {
+#      points(tvertprof(zz,t0=opt$par[1],gamma=opt$par[2],
+#                       a=opt$par[3],h0=opt$par[4],h1i=opt$par[5]),
+#             zz,col="blue",pch=19,cex=0.5)
+#    }
+#    points(to[susi],zopt[susi],pch=19,col="red")
+#    if (length(gold)>0) points(to[gold],zopt[gold],pch=19,col="gold")
+#    abline(h=seq(-1000,10000,by=100),col="gray",lty=2)
+#    abline(h=0,lwd=2,col="black")
+#    dev.off()
     f<-file.path(argv$debug.dir,
-         paste("titan_sctvert_it_",formatC(i,width=2,flag="0"),
-               "_subd",formatC(ixynp[1],width=5,flag="0"),".png",sep=""))
-    png(file=f,width=800,height=800)
-    plot(to,zopt,xlim=c(max(-30,min(to)),min(30,max(to))),
-                   ylim=c(0,min(2000,max(zopt))) )
-    zz<-seq(0,2000,by=0.1)
-    if (dz<dzmin | ixynp[4]<nmin) {
-      points(tvertprof_basic(zz,t0=opt$minimum,gamma=gamma.standard),
-             zz,col="blue",pch=19,cex=0.5)
-    } else {
-      points(tvertprof(zz,t0=opt$par[1],gamma=opt$par[2],
-                       a=opt$par[3],h0=opt$par[4],h1i=opt$par[5]),
-             zz,col="blue",pch=19,cex=0.5)
-    }
-    points(to[susi],zopt[susi],pch=19,col="red")
-    if (length(gold)>0) points(to[gold],zopt[gold],pch=19,col="gold")
-    abline(h=seq(-1000,10000,by=100),col="gray",lty=2)
-    abline(h=0,lwd=2,col="black")
-    dev.off()
-    f<-file.path(argv$debug.dir,
-         paste("titan_scthorz_it_",formatC(i,width=2,flag="0"),
+         paste("poseidon_scthorz_it_",formatC(i,width=2,flag="0"),
                "_subd",formatC(ixynp[1],width=5,flag="0"),".png",sep=""))
     png(file=f,width=800,height=800)
     plot(xtot[j],ytot[j])
@@ -676,12 +680,19 @@ p<- add_argument(p, "--varname.rep",
             help="name for the coefficient of representativeness (out)",
                   type="character",default="rep",short="-vrep")
 # geographical parameters
-p <- add_argument(p, "--spatconv",help="flag for conversion of spatial coordinates before running the data quality checks",
+p <- add_argument(p, "--spatconv",
+                  help="flag for conversion of spatial coordinates before running the data quality checks",
                   flag=T,short="-c")
-p <- add_argument(p, "--proj4from",help="proj4 string for the original coordinate reference system",
-                  type="character",default="+proj=longlat +datum=WGS84",short="-pf")
-p <- add_argument(p, "--proj4to",help="proj4 string for the coordinate reference system where the DQC is performed",
-                  type="character",default="+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06",short="-pt")
+p <- add_argument(p, "--proj4from",
+                  help="proj4 string for the original coordinate reference system",
+                  type="character",
+                  default="+proj=longlat +datum=WGS84",short="-pf")
+p <- add_argument(p, "--proj4to",
+                  help="proj4 string for the coordinate reference system where the DQC is performed",
+                  type="character",
+                  default="+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0",
+#                  default="+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06",
+                  short="-pt")
 # parameter for the Box-Cox transformation
 p <- add_argument(p, "--boxcox.lambda",
                   help="parameter used in the Box-Cox transformation",
@@ -693,13 +704,14 @@ p <- add_argument(p, "--zmax",help="maximum allowed elevation in the domain [m a
                   type="numeric",default=2500,short="-Z")
 # Plausibility check
 p <- add_argument(p, "--tmax",help="maximum allowed value [mm]",
-                  type="numeric",default=400,short="-TP")
+                  type="numeric",default=90,short="-TP")
 # Cliamtological check
-# TODO: default based on Norwegian hourly precipitation from 2010-2017
+# default based on Norwegian hourly precipitation from 2010-2017
+# (threshold=seasonal_maximum * 1.5 (with some subjective adjustments)
 p <- add_argument(p, "--tmax.clim",
                   help="maximum allowed value [mm]",
                   type="numeric",nargs=12,short="-TC",
-                  default=c(20,20,25,25,35,35,40,40,35,30,25,20))
+                  default=c(20,20,30,30,50,70,70,70,40,40,40,20))
 p <- add_argument(p, "--month.clim",help="month (number 1-12)",
                   type="numeric",short="-mC",
 #                  default=as.numeric(format(Sys.time(), "%m")))
@@ -720,7 +732,7 @@ p<-add_argument(p, "--dmax.isodry",
 p<-add_argument(p, "--dmin.isodry",
     help="minimum distance between a dry observations surrounded only by wet observations and the closest observations to be considered good [m]",
                 type="numeric",default=150000,short="-dI")
-# TODO: check for dry observations by comparing against a first-guess field
+# check for dry observations by comparing against a first-guess field
 p<- add_argument(p, "--file.fg",
                  help="first-guess file",
                  type="character",default=NA,short="-fF")
@@ -735,7 +747,7 @@ p<- add_argument(p, "--varname.fg",
                  default="lwe_precipitation_rate",short="-fF")
 p<-add_argument(p, "--dr.fg",
                 help="distance for the check against the first-guess field [m]",
-                type="numeric",default=1,short="-dF")
+                type="numeric",default=1500,short="-dF")
 p<-add_argument(p, "--rr.fg",
                 help="precipitation/no-precipitation threshold [mm]",
                 type="numeric",default=.1,short="-rrF")
@@ -822,7 +834,10 @@ p <- add_argument(p, "--laf.file",
                   type="character",default=NULL,short="-lfS")
 p <- add_argument(p, "--proj4laf",
                   help="proj4 string for the laf",
-                  type="character",default="+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06",short="-pl")
+                  type="character",
+                  default="+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0",
+#                  default="+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06",
+                  short="-pl")
 # observation representativeness
 p <- add_argument(p, "--mean.corep",
                   help="average coefficient for the observation representativeness",
@@ -847,7 +862,8 @@ p <- add_argument(p, "--dem.file",
                   type="character",default=NULL,short="-dmf")
 p <- add_argument(p, "--proj4dem",help="proj4 string for the dem",
                   type="character",
-     default="+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06",
+                  default="+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0",
+#     default="+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06",
                   short="-pd")
 # blacklist
 # specified by triple/pairs of numbers: either (lat,lon,IDprovider) OR (index,IDprovider)
@@ -1050,8 +1066,6 @@ dem.code<-8
 isol.code<-9
 black.code<-100
 keep.code<-200
-# standard value for the moist adiabatic lapse rate
-gamma.standard<--0.0065  # (dT/dZ)
 #
 #-----------------------------------------------------------------------------
 # read data
@@ -1199,9 +1213,17 @@ if (argv$spatconv) {
 #-----------------------------------------------------------------------------
 # Read (optional) geographical information
 if (argv$dem | argv$dem.fill) {
-  rdem<-raster(argv$dem.file)
-  crs(rdem)<-argv$proj4dem
+  # read netCDF and load into memory
+  rdem0<-raster(argv$dem.file)
+  crs(rdem0)<-argv$proj4dem
+  rdem<-raster(rdem0)
+  rdem[]<-getValues(rdem0)
+  rm(rdem0)
   zdem<-extract(rdem,cbind(x,y))
+  rdem.xmn<-xmin(rdem)
+  rdem.xmx<-xmax(rdem)
+  rdem.ymn<-ymin(rdem)
+  rdem.ymx<-ymax(rdem)
   # fill missing elevation with dem
   if (argv$dem.fill) {
     iz<-which(is.na(z) & !is.na(zdem))
@@ -1210,8 +1232,11 @@ if (argv$dem | argv$dem.fill) {
   }  
 }
 if (argv$laf.sct) {
-  rlaf<-raster(argv$laf.file)
-  crs(rlaf)<-argv$proj4laf
+  rlaf0<-raster(argv$laf.file)
+  crs(rlaf0)<-argv$proj4laf
+  rlaf<-raster(rlaf0)
+  rlaf[]<-getValues(rlaf0)
+  rm(rlaf0)
   laf<-extract(rlaf,cbind(x,y))/100.
 } else {
   # use a fake laf
@@ -1304,12 +1329,54 @@ for (i in 1:argv$i.isodry) {
     nprev<-length(which(dqcflag==isodry.code))
   }
 }
+#
+if (argv$debug) {
+  if (!dir.exists(argv$debug.dir)) 
+    dir.create(argv$debug.dir,showWarnings=F,recursive=T)
+  sus<-which(dqcflag==isodry.code)
+  for (j in 1:length(sus)) {
+    i<-sus[j]
+    f<-file.path(argv$debug.dir,
+         paste("poseidon_dry_",
+               formatC(i,width=2,flag="0"),
+               ".png",sep=""))
+    susi<-which(dqcflag==isodry.code)
+    png(file=f,width=800,height=800)
+    xmnj<-x[i]-30000
+    xmxj<-x[i]+30000
+    ymnj<-y[i]-30000
+    ymxj<-y[i]+30000
+    e<-extent(xmnj,xmxj,ymnj,ymxj)
+    plot(x,y,
+         xlim=c(xmnj,xmxj),
+         ylim=c(ymnj,ymxj),
+         main="",
+         xlab="",
+         ylab="",cex=2, col="white")
+    if (file.exists(argv$dem.file) &
+        xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
+        ymnj>=rdem.ymn & ymxj<=rdem.ymx) {
+      dem0<-crop(rdem,e)
+      image(dem0,add=T,
+            breaks=c(0,10,25,50,100,250,500,750,1000,
+                     1250,1500,1750,2000,2500,3000),
+            col=gray.colors(14))
+    }
+    susi<-which(dqcflag==isodry.code)
+    wet<-which(data$value>=argv$rr.isodry & is.na(dqcflag))
+    dry<-which(data$value<argv$rr.isodry & is.na(dqcflag))
+    points(x[wet],y[wet],pch=19,col="blue",cex=2)
+    points(x[dry],y[dry],pch=15,col="orange",cex=2)
+    points(x[susi],y[susi],pch=17,col="red",cex=2)
+    dev.off()
+  }
+}
 if (argv$verbose | argv$debug) 
   print("+---------------------------------+")
 options(warn = 2, scipen = 999)
 #
 #-----------------------------------------------------------------------------
-# TODO: check for dry observations by comparing against a first-guess field
+# check for dry observations by comparing against a first-guess field
 if (!is.na(argv$file.fg)) {
   t0a<-Sys.time()
   ix<-which(is.na(dqcflag) | dqcflag==keep.code)
@@ -1321,9 +1388,15 @@ if (!is.na(argv$file.fg)) {
       xtot<-x[ix]
       ytot<-y[ix]
       ttot<-data$value[ix]
-      rfg<-raster(argv$file.fg)
-      crs(rfg)<-argv$proj4fg
-#      rfg<-subset(rfg,subset=argv$varname.fg)
+      rfg0<-raster(argv$file.fg)
+      crs(rfg0)<-argv$proj4.fg
+      rfg<-raster(rfg0)
+      rfg[]<-getValues(rfg0)
+      rm(rfg0)
+      rfg.xmn<-xmin(rfg)
+      rfg.xmx<-xmax(rfg)
+      rfg.ymn<-ymin(rfg)
+      rfg.ymx<-ymax(rfg)
       rrfg<-extract(rfg,cbind(xtot,ytot),buffer=argv$dr.fg,fun=max,na.rm=T)
       sus<-which(rrfg>=argv$rr.fg & ttot<argv$rr.fg)
       if (length(sus)>0) dqcflag[ix[sus]]<-fg.code
@@ -1337,6 +1410,67 @@ if (!is.na(argv$file.fg)) {
                 "/time",round(t1a-t0a,1),attr(t1a-t0a,"unit")))
     ncur<-length(which(dqcflag==fg.code))
     print(paste("# suspect observations=",ncur))
+    if (argv$debug) {
+      if (!dir.exists(argv$debug.dir)) 
+      dir.create(argv$debug.dir,showWarnings=F,recursive=T)
+      f<-file.path(argv$debug.dir,
+           paste("poseidon_fg.png",sep=""))
+      susi<-which(dqcflag[ix]==fg.code)
+      png(file=f,width=800,height=800)
+      plot(ttot,rrfg,
+           xlim=c(min(c(ttot,rrfg),na.rm=T),
+                  max(c(ttot,rrfg),na.rm=T)),
+           ylim=c(min(c(ttot,rrfg),na.rm=T),
+                  max(c(ttot,rrfg),na.rm=T)),
+           main=paste("/ #sus=",length(susi)),
+           xlab="Observations (mm)",
+           ylab="First guess (mm)" )
+      lines(-100:100,-100:100,col="gray")
+      points(ttot[susi],rrfg[susi],pch=19,col="red")
+      abline(h=seq(-1000,10000,by=10),col="gray",lty=2)
+      abline(v=seq(-1000,10000,by=10),col="gray",lty=2)
+      abline(h=0,lwd=2,col="gray",lty=1)
+      abline(v=0,lwd=2,col="gray",lty=1)
+      dev.off()
+      sus<-which(dqcflag==fg.code)
+      for (j in 1:length(sus)) {
+        i<-sus[j]
+        f<-file.path(argv$debug.dir,
+             paste("poseidon_fg_",
+                   formatC(i,width=2,flag="0"),
+                   ".png",sep=""))
+        susi<-which(dqcflag==fg.code)
+        png(file=f,width=800,height=800)
+        xmnj<-x[i]-30000
+        xmxj<-x[i]+30000
+        ymnj<-y[i]-30000
+        ymxj<-y[i]+30000
+        e<-extent(xmnj,xmxj,ymnj,ymxj)
+        plot(x,y,
+             xlim=c(xmnj,xmxj),
+             ylim=c(ymnj,ymxj),
+             main="",
+             xlab="",
+             ylab="",cex=2,col="white")
+        br<-c(0,.1,.5,1,2,3,4,5,6,7,8,9,10,11,3000)
+        col<-c("beige",rev(rainbow((length(br)-2))))
+        if (xmnj>=rfg.xmn & xmxj<=rfg.xmx & 
+            ymnj>=rfg.ymn & ymxj<=rfg.ymx ) {
+          fg0<-crop(rfg,e)
+          image(fg0,add=T,
+                breaks=br,
+                col=col)
+        }
+        susi<-which(dqcflag==fg.code)
+        wet<-which(data$value>=argv$rr.fg & is.na(dqcflag))
+        dry<-which(data$value<argv$rr.fg & is.na(dqcflag))
+        points(x[wet],y[wet],pch=19,col="blue",cex=2)
+        points(x[dry],y[dry],pch=15,col="orange",cex=2)
+        points(x[susi],y[susi],pch=17,col="red",cex=2)
+        points(x[susi],y[susi],pch=2,col="black",cex=2)
+        dev.off()
+      }
+    }
   }
   if (argv$verbose | argv$debug) 
     print("+---------------------------------+")
@@ -1374,9 +1508,52 @@ for (i in 1:argv$i.isowet) {
     nprev<-length(which(dqcflag==isowet.code))
   }
 }
+#
+if (argv$debug) {
+  if (!dir.exists(argv$debug.dir)) 
+    dir.create(argv$debug.dir,showWarnings=F,recursive=T)
+  sus<-which(dqcflag==isowet.code)
+  for (j in 1:length(sus)) {
+    i<-sus[j]
+    f<-file.path(argv$debug.dir,
+         paste("poseidon_wet_",
+               formatC(i,width=2,flag="0"),
+               ".png",sep=""))
+    susi<-which(dqcflag==isowet.code)
+    png(file=f,width=800,height=800)
+    xmnj<-x[i]-30000
+    xmxj<-x[i]+30000
+    ymnj<-y[i]-30000
+    ymxj<-y[i]+30000
+    e<-extent(xmnj,xmxj,ymnj,ymxj)
+    plot(x,y,
+         xlim=c(xmnj,xmxj),
+         ylim=c(ymnj,ymxj),
+         main="",
+         xlab="",
+         ylab="",cex=2,col="white")
+    if (file.exists(argv$dem.file) & 
+        xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
+        ymnj>=rdem.ymn & ymxj<=rdem.ymx ) {
+      dem0<-crop(rdem,e)
+      image(dem0,add=T,
+            breaks=c(0,10,25,50,100,250,500,750,1000,
+                     1250,1500,1750,2000,2500,3000),
+            col=gray.colors(14))
+    }
+    susi<-which(dqcflag==isowet.code)
+    wet<-which(data$value>=argv$rr.isowet & is.na(dqcflag))
+    dry<-which(data$value<argv$rr.isowet & is.na(dqcflag))
+    points(x[wet],y[wet],pch=19,col="blue",cex=2)
+    points(x[dry],y[dry],pch=15,col="orange",cex=2)
+    points(x[susi],y[susi],pch=17,col="cyan",cex=2)
+    dev.off()
+  }
+}
 if (argv$verbose | argv$debug) 
   print("+---------------------------------+")
 options(warn = 2, scipen = 999)
+q()
 #
 #-----------------------------------------------------------------------------
 # buddy check 
@@ -1394,7 +1571,7 @@ for (i in 1:argv$i.buddy) {
     ttot<-boxcox(x=data$value[ix],lambda=argv$boxcox.lambda)
     # apply will loop over this 4D array
     ixyzt_tot<-cbind(1:length(xtot),xtot,ytot,ztot,ttot)
-    stSp<-apply(ixyzt_tot,FUN=statSpat,MARGIN=1,drmin=argv$dr.buddy)
+    stSp<-apply(ixyzt_tot,FUN=statSpat,MARGIN=1,drmin=argv$dr.buddy,tcor.flag=F)
     # probability of gross error
     pog<-abs(ttot-stSp[3,])/stSp[4,]
     # suspect if: 
@@ -1444,7 +1621,7 @@ for (i in 1:argv$i.sct) {
     ttot<-boxcox(x=data$value[ix],lambda=argv$boxcox.lambda)
     # apply will loop over this 4D array
     ixyzt_tot<-cbind(1:length(xtot),xtot,ytot,ztot,ttot)
-    stSp<-apply(ixyzt_tot,FUN=statSpat,MARGIN=1,drmin=argv$dr.sct)
+    stSp<-apply(ixyzt_tot,FUN=statSpat,MARGIN=1,drmin=argv$dr.sct,tcor.flag=F)
     ixok<-which(stSp[1,]>argv$nbg.sct & 
                 data$value[ix]>argv$rr.sct)
     if (length(ixok)>3) {
@@ -1482,8 +1659,37 @@ for (i in 1:argv$i.sct) {
     ncur<-length(which(dqcflag==sct.code))
     print(paste("# suspect observations=",ncur-nprev))
     nprev<-length(which(dqcflag==sct.code))
+    if (argv$debug) {
+      if (!dir.exists(argv$debug.dir)) 
+      dir.create(argv$debug.dir,showWarnings=F,recursive=T)
+      f<-file.path(argv$debug.dir,
+           paste("poseidon_sctm_it_",formatC(i,width=2,flag="0"),".png",sep=""))
+      susi<-which(dqcflag[ix]==sct.code)
+      png(file=f,width=800,height=800)
+      plot(ttot[ixok],stSp[3,ixok],
+           xlim=c(min(c(ttot,stSp[3,ixok])),
+                  max(c(ttot,stSp[3,ixok]))),
+           ylim=c(min(c(ttot,stSp[3,ixok])),
+                  max(c(ttot,stSp[3,ixok]))),
+           main=paste("ang coeff=",round(m,3),
+                      "/ #sus=",length(susi)),
+           xlab="Observations (Box-Cox transformed)",
+           ylab="Large-Scale value / Background" )
+      lines(-100:100,m*-100:100,col="darkblue")
+      lines(-100:100,-100:100,col="gray")
+      points(ttot,m*ttot,col="blue")
+      points(ttot[susi],m*ttot[susi],pch=19,col="red")
+      abline(h=seq(-1000,10000,by=10),col="gray",lty=2)
+      abline(v=seq(-1000,10000,by=10),col="gray",lty=2)
+      abline(h=0,lwd=2,col="gray",lty=1)
+      abline(v=0,lwd=2,col="gray",lty=1)
+      abline(h=-1/argv$boxcox.lambda,lwd=2,col="black",lty=1)
+      abline(v=-1/argv$boxcox.lambda,lwd=2,col="black",lty=1)
+      abline(v=ttot[susi],col="red")
+      dev.off()
+    }
   }
-}
+} # end SCT loop
 if (argv$verbose | argv$debug) 
   print("+---------------------------------+")
 #
