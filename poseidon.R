@@ -782,7 +782,7 @@ p <- add_argument(p, "--n.buddy",
                   type="integer",default=5,short="-nB")
 p <- add_argument(p, "--dz.buddy",
                   help="maximum allowed range of elevation in a square-box to perform the buddy-check (i.e. no check if elevation > dz.buddy)",
-                  type="numeric",default=500,short="-zB")
+                  type="numeric",default=1500,short="-zB")
 # isolated stations
 p <- add_argument(p, "--dr.isol",
                   help="check for the number of observation in a dr-by-dr square-box around each observation [m]",
@@ -1404,6 +1404,7 @@ if (!is.na(argv$file.fg)) {
   } else {
     print("no valid observations left, no check for dry observations against first-guess")
   }
+  #
   if (argv$verbose | argv$debug) {
     t1a<-Sys.time()
     print(paste("check for dry observations against a first-guess",
@@ -1578,6 +1579,7 @@ for (i in 1:argv$i.buddy) {
     ixyzt_tot<-cbind(1:length(xtot),xtot,ytot,ztot,ttot)
     stSp<-apply(ixyzt_tot,FUN=statSpat,MARGIN=1,drmin=argv$dr.buddy,tcor.flag=F)
     # probability of gross error
+    stSp[4,][which(stSp[4,]<0.1)]<-0.1
     pog<-abs(ttot-stSp[3,])/stSp[4,]
     # suspect if: 
     sus<-which(pog>argv$thr.buddy & 
@@ -1598,8 +1600,124 @@ for (i in 1:argv$i.buddy) {
     nprev<-length(which(dqcflag==buddy.code))
   }
 }
-if (argv$verbose | argv$debug) 
+if (argv$verbose | argv$debug) { 
   print("+---------------------------------+")
+  if (argv$debug) {
+    if (!dir.exists(argv$debug.dir)) 
+    dir.create(argv$debug.dir,showWarnings=F,recursive=T)
+    f<-file.path(argv$debug.dir,
+         paste("poseidon_buddy_mean.png",sep=""))
+    susi<-which(dqcflag[ix]==buddy.code)
+    png(file=f,width=800,height=800)
+    plot(ttot,stSp[3,],
+         xlim=c(min(c(ttot,stSp[3,]),na.rm=T),
+                max(c(ttot,stSp[3,]),na.rm=T)),
+         ylim=c(min(c(ttot,stSp[3,]),na.rm=T),
+                max(c(ttot,stSp[3,]),na.rm=T)),
+#         xlim=c(0,6),
+#         ylim=c(0,6),
+#           main=paste("/ #sus=",length(susi)),
+         main="",
+         xlab="Observations (mm)",
+         ylab="Average (mm)",col="white" )
+    points(ttot,stSp[3,],pch=19,col="black")
+    lines(-100:100,-100:100,col="gray")
+    points(ttot[susi],stSp[3,][susi],pch=19,col="red")
+    abline(h=seq(-1000,10000,by=2.5),col="gray",lty=2)
+    abline(v=seq(-1000,10000,by=2.5),col="gray",lty=2)
+    abline(h=0,lwd=2,col="gray",lty=1)
+    abline(v=0,lwd=2,col="gray",lty=1)
+    dev.off()
+    f<-file.path(argv$debug.dir,
+         paste("poseidon_buddy_sd.png",sep=""))
+    susi<-which(dqcflag[ix]==buddy.code)
+    png(file=f,width=800,height=800)
+    plot(ttot,stSp[4,],
+         xlim=c(min(c(ttot,stSp[4,]),na.rm=T),
+                max(c(ttot,stSp[4,]),na.rm=T)),
+         ylim=c(min(c(ttot,stSp[4,]),na.rm=T),
+                max(c(ttot,stSp[4,]),na.rm=T)),
+#         xlim=c(0,6),
+#         ylim=c(0,6),
+#           main=paste("/ #sus=",length(susi)),
+         main="",
+         xlab="Observations (mm)",
+         ylab="Standard deviation (mm)",col="white" )
+    points(ttot,stSp[4,],pch=19,col="black")
+    lines(-100:100,-100:100,col="gray")
+    points(ttot[susi],stSp[4,susi],pch=19,col="red")
+    abline(h=seq(-1000,10000,by=2.5),col="gray",lty=2)
+    abline(v=seq(-1000,10000,by=2.5),col="gray",lty=2)
+    abline(h=0,lwd=2,col="gray",lty=1)
+    abline(v=0,lwd=2,col="gray",lty=1)
+    dev.off()
+    #
+    susi<-which(dqcflag[ix]==buddy.code)
+    for (j in 1:length(susi)) {
+      i<-susi[j]
+      f<-file.path(argv$debug.dir,
+           paste("poseidon_buddy_",
+                 formatC(i,width=5,flag="0"),
+                 ".png",sep=""))
+      png(file=f,width=800,height=800)
+      xmnj<-xtot[i]-argv$dr.buddy
+      xmxj<-xtot[i]+argv$dr.buddy
+      ymnj<-ytot[i]-argv$dr.buddy
+      ymxj<-ytot[i]+argv$dr.buddy
+      e<-extent(xmnj,xmxj,ymnj,ymxj)
+      plot(xtot,xtot,
+           xlim=c(xmnj-1*argv$dr.buddy,xmxj+1*argv$dr.buddy),
+           ylim=c(ymnj-1*argv$dr.buddy,ymxj+1*argv$dr.buddy),
+           main="",
+           xlab="",
+           ylab="",cex=2,col="white")
+      brt<-c(0,0.1,0.5,1,2,3,4,5,6,7,8,9,10,3000)
+      br<-boxcox(brt,
+                 lambda=argv$boxcox.lambda)
+      col<-c("beige",rev(rainbow((length(br)-2))))
+      if (file.exists(argv$dem.file) & 
+          xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
+          ymnj>=rdem.ymn & ymxj<=rdem.ymx ) {
+        xmnj<-xtot[i]-2*argv$dr.buddy
+        xmxj<-xtot[i]+2*argv$dr.buddy
+        ymnj<-ytot[i]-2*argv$dr.buddy
+        ymxj<-ytot[i]+2*argv$dr.buddy
+        ed<-extent(xmnj,xmxj,ymnj,ymxj)
+        dem0<-crop(rdem,ed)
+        image(dem0,add=T,
+              breaks=c(0,10,25,50,100,250,500,750,1000,
+                       1250,1500,1750,2000,2500,3000),
+              col=gray.colors(14))
+      }
+      for (c in 1:length(col)) {
+        if (c==1) {
+          legstr<-paste("<",brt[2],"mm",sep="")
+        } else if (c==length(col)) {
+          legstr<-c(legstr,paste(">=",brt[c],sep=""))
+        } else {
+          legstr<-c(legstr,paste("[",brt[c],",",brt[c+1],")",sep=""))
+        }
+        aux<-which(ttot>=br[c] & 
+                   ttot<br[c+1] & 
+                   is.na(dqcflag[ix]))
+        if (length(aux)>0) {
+          points(xtot[aux],ytot[aux],pch=19,col=col[c],cex=2)
+          points(xtot[aux],ytot[aux],pch=1,col="black",cex=2)
+        }
+        aux<-which(ttot>=br[c] & 
+                   ttot<br[c+1] & 
+                   dqcflag[ix]==buddy.code)
+        if (length(aux)>0) {
+          points(xtot[aux],ytot[aux],pch=17,col=col[c],cex=2)
+          points(xtot[aux],ytot[aux],pch=2,col="black",cex=2)
+        }
+      }
+      plot(e,add=T,lwd=3)
+#      legend(x="bottomright",fill=rev(col),legend=rev(legstr),cex=1.5)
+      dev.off()
+    }
+  }
+}
 #
 #-----------------------------------------------------------------------------
 # SCT - Spatial Consistency Test
@@ -1728,6 +1846,162 @@ if (length(ix)>0) {
 } else {
   print("no valid first guess for the observation error variance found")
 }
+#
+#-----------------------------------------------------------------------------
+# check for isolated dry observations 
+options(warn=1,scipen = 999)
+if (argv$verbose | argv$debug) nprev<-0
+for (i in 1:argv$i.isodry) {
+  # use only (probably) good observations
+  ix<-which(is.na(dqcflag) | dqcflag==keep.code)
+  if (length(ix)>0) {
+    t0a<-Sys.time()
+    obs<-data.frame(x[ix],y[ix],data$value[ix])
+    names(obs)<-c("x","y","yo")
+    aux<-RR1_dqc_isolatedDry(obs,
+                             rrinf=argv$rr.isodry,
+                             pmax=argv$pmax.isodry,
+                             dmax=argv$dmax.isodry,
+                             n.sector=16,
+                             dmin.dry=argv$dmin.isodry)
+    sus<-which(aux!=0)
+    # set dqcflag
+    if (length(sus)>0) dqcflag[ix[sus]]<-isodry.code
+  } else {
+    print("no valid observations left, no check for isolated dry observations")
+  }
+  if (argv$verbose | argv$debug) {
+    t1a<-Sys.time()
+    print(paste("check for isolated dry observations, iteration=",i,
+                "/time",round(t1a-t0a,1),attr(t1a-t0a,"unit")))
+    ncur<-length(which(dqcflag==isodry.code))
+    print(paste("# suspect observations=",ncur-nprev))
+    nprev<-length(which(dqcflag==isodry.code))
+  }
+}
+#
+if (argv$debug) {
+  if (!dir.exists(argv$debug.dir)) 
+    dir.create(argv$debug.dir,showWarnings=F,recursive=T)
+  sus<-which(dqcflag==isodry.code)
+  for (j in 1:length(sus)) {
+    i<-sus[j]
+    f<-file.path(argv$debug.dir,
+         paste("poseidon_dry_",
+               formatC(i,width=2,flag="0"),
+               ".png",sep=""))
+    susi<-which(dqcflag==isodry.code)
+    png(file=f,width=800,height=800)
+    xmnj<-x[i]-30000
+    xmxj<-x[i]+30000
+    ymnj<-y[i]-30000
+    ymxj<-y[i]+30000
+    e<-extent(xmnj,xmxj,ymnj,ymxj)
+    plot(x,y,
+         xlim=c(xmnj,xmxj),
+         ylim=c(ymnj,ymxj),
+         main="",
+         xlab="",
+         ylab="",cex=2, col="white")
+    if (file.exists(argv$dem.file) &
+        xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
+        ymnj>=rdem.ymn & ymxj<=rdem.ymx) {
+      dem0<-crop(rdem,e)
+      image(dem0,add=T,
+            breaks=c(0,10,25,50,100,250,500,750,1000,
+                     1250,1500,1750,2000,2500,3000),
+            col=gray.colors(14))
+    }
+    susi<-which(dqcflag==isodry.code)
+    wet<-which(data$value>=argv$rr.isodry & is.na(dqcflag))
+    dry<-which(data$value<argv$rr.isodry & is.na(dqcflag))
+    points(x[wet],y[wet],pch=19,col="blue",cex=2)
+    points(x[dry],y[dry],pch=15,col="orange",cex=2)
+    points(x[susi],y[susi],pch=17,col="red",cex=2)
+    dev.off()
+  }
+}
+if (argv$verbose | argv$debug) 
+  print("+---------------------------------+")
+options(warn = 2, scipen = 999)
+#
+#-----------------------------------------------------------------------------
+# Check for isolated wet observations
+options(warn=1,scipen = 999)
+if (argv$verbose | argv$debug) nprev<-0
+for (i in 1:argv$i.isowet) {
+  # use only (probably) good observations
+  ix<-which(is.na(dqcflag) | dqcflag==keep.code)
+  if (length(ix)>0) {
+    t0a<-Sys.time()
+    obs<-data.frame(x[ix],y[ix],data$value[ix])
+    names(obs)<-c("x","y","yo")
+    aux<-RR1_dqc_isolatedWet(obs,
+                             rrinf=argv$rr.isowet,
+                             pmax=argv$pmax.isowet,
+                             dmax=argv$dmax.isowet,
+                             n.sector=16,
+                             dmin.wet=argv$dmin.isowet)
+    sus<-which(aux!=0)
+    # set dqcflag
+    if (length(sus)>0) dqcflag[ix[sus]]<-isowet.code
+  } else {
+    print("no valid observations left, no check for isolated wet observations")
+  }
+  if (argv$verbose | argv$debug) {
+    t1a<-Sys.time()
+    print(paste("check for isolated wet observations, iteration=",i,
+                "/time",round(t1a-t0a,1),attr(t1a-t0a,"unit")))
+    ncur<-length(which(dqcflag==isowet.code))
+    print(paste("# suspect observations=",ncur-nprev))
+    nprev<-length(which(dqcflag==isowet.code))
+  }
+}
+#
+if (argv$debug) {
+  if (!dir.exists(argv$debug.dir)) 
+    dir.create(argv$debug.dir,showWarnings=F,recursive=T)
+  sus<-which(dqcflag==isowet.code)
+  for (j in 1:length(sus)) {
+    i<-sus[j]
+    f<-file.path(argv$debug.dir,
+         paste("poseidon_wet_",
+               formatC(i,width=2,flag="0"),
+               ".png",sep=""))
+    susi<-which(dqcflag==isowet.code)
+    png(file=f,width=800,height=800)
+    xmnj<-x[i]-30000
+    xmxj<-x[i]+30000
+    ymnj<-y[i]-30000
+    ymxj<-y[i]+30000
+    e<-extent(xmnj,xmxj,ymnj,ymxj)
+    plot(x,y,
+         xlim=c(xmnj,xmxj),
+         ylim=c(ymnj,ymxj),
+         main="",
+         xlab="",
+         ylab="",cex=2,col="white")
+    if (file.exists(argv$dem.file) & 
+        xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
+        ymnj>=rdem.ymn & ymxj<=rdem.ymx ) {
+      dem0<-crop(rdem,e)
+      image(dem0,add=T,
+            breaks=c(0,10,25,50,100,250,500,750,1000,
+                     1250,1500,1750,2000,2500,3000),
+            col=gray.colors(14))
+    }
+    susi<-which(dqcflag==isowet.code)
+    wet<-which(data$value>=argv$rr.isowet & is.na(dqcflag))
+    dry<-which(data$value<argv$rr.isowet & is.na(dqcflag))
+    points(x[wet],y[wet],pch=19,col="blue",cex=2)
+    points(x[dry],y[dry],pch=15,col="orange",cex=2)
+    points(x[susi],y[susi],pch=17,col="cyan",cex=2)
+    dev.off()
+  }
+}
+if (argv$verbose | argv$debug) 
+  print("+---------------------------------+")
+options(warn = 2, scipen = 999)
 #
 #-----------------------------------------------------------------------------
 # check elevation against dem 
