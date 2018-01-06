@@ -287,18 +287,18 @@ sct<-function(ixynp,
                "_subd",formatC(ixynp[1],width=5,flag="0"),".png",sep=""))
     png(file=f,width=800,height=800)
     plot(xtot[j],ytot[j])
-    if (argv$dem | argv$dem.fill) {
-      if (!exists("dem1"))
-        dem1<-crop(rdem,
-                   extent(c(ixynp[2]-100000,
-                            ixynp[2]+100000,
-                            ixynp[3]-100000,
-                            ixynp[3]+100000
-                            )))
-      image(dem1,add=T,
-            breaks=c(0,10,25,50,100,250,500,750,1000,1250,1500,1750,2000,2500,3000),
-            col=gray.colors(14))
-    }
+#    if (argv$dem | argv$dem.fill) {
+#      if (!exists("dem1"))
+#        dem1<-crop(rdem,
+#                   extent(c(ixynp[2]-100000,
+#                            ixynp[2]+100000,
+#                            ixynp[3]-100000,
+#                            ixynp[3]+100000
+#                            )))
+#      image(dem1,add=T,
+#            breaks=c(0,10,25,50,100,250,500,750,1000,1250,1500,1750,2000,2500,3000),
+#            col=gray.colors(14))
+#    }
     points(xtot[j],ytot[j],pch=19,col="blue")
     points(xtot[j[susi]],ytot[j[susi]],pch=19,col="red")
     if (length(gold)>0) points(to[gold],zopt[gold],pch=19,col="gold")
@@ -1346,7 +1346,7 @@ if (argv$debug) {
     xmxj<-x[i]+30000
     ymnj<-y[i]-30000
     ymxj<-y[i]+30000
-    e<-extent(xmnj,xmxj,ymnj,ymxj)
+    ee<-extent(xmnj,xmxj,ymnj,ymxj)
     plot(x,y,
          xlim=c(xmnj,xmxj),
          ylim=c(ymnj,ymxj),
@@ -1356,7 +1356,7 @@ if (argv$debug) {
     if (file.exists(argv$dem.file) &
         xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
         ymnj>=rdem.ymn & ymxj<=rdem.ymx) {
-      dem0<-crop(rdem,e)
+      dem0<-crop(rdem,ee)
       image(dem0,add=T,
             breaks=c(0,10,25,50,100,250,500,750,1000,
                      1250,1500,1750,2000,2500,3000),
@@ -1450,7 +1450,7 @@ if (!is.na(argv$file.fg)) {
         xmxj<-x[i]+30000
         ymnj<-y[i]-30000
         ymxj<-y[i]+30000
-        e<-extent(xmnj,xmxj,ymnj,ymxj)
+        ee<-extent(xmnj,xmxj,ymnj,ymxj)
         plot(x,y,
              xlim=c(xmnj,xmxj),
              ylim=c(ymnj,ymxj),
@@ -1461,7 +1461,7 @@ if (!is.na(argv$file.fg)) {
         col<-c("beige",rev(rainbow((length(br)-2))))
         if (xmnj>=rfg.xmn & xmxj<=rfg.xmx & 
             ymnj>=rfg.ymn & ymxj<=rfg.ymx ) {
-          fg0<-crop(rfg,e)
+          fg0<-crop(rfg,ee)
           image(fg0,add=T,
                 breaks=br,
                 col=col)
@@ -1532,7 +1532,7 @@ if (argv$debug) {
     xmxj<-x[i]+30000
     ymnj<-y[i]-30000
     ymxj<-y[i]+30000
-    e<-extent(xmnj,xmxj,ymnj,ymxj)
+    ee<-extent(xmnj,xmxj,ymnj,ymxj)
     plot(x,y,
          xlim=c(xmnj,xmxj),
          ylim=c(ymnj,ymxj),
@@ -1542,7 +1542,7 @@ if (argv$debug) {
     if (file.exists(argv$dem.file) & 
         xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
         ymnj>=rdem.ymn & ymxj<=rdem.ymx ) {
-      dem0<-crop(rdem,e)
+      dem0<-crop(rdem,ee)
       image(dem0,add=T,
             breaks=c(0,10,25,50,100,250,500,750,1000,
                      1250,1500,1750,2000,2500,3000),
@@ -1601,7 +1601,6 @@ for (i in 1:argv$i.buddy) {
   }
 }
 if (argv$verbose | argv$debug) { 
-  print("+---------------------------------+")
   if (argv$debug) {
     if (!dir.exists(argv$debug.dir)) 
     dir.create(argv$debug.dir,showWarnings=F,recursive=T)
@@ -1633,23 +1632,24 @@ if (argv$verbose | argv$debug) {
     susi<-which(dqcflag[ix]==buddy.code)
     png(file=f,width=800,height=800)
     plot(ttot,stSp[4,],
-         xlim=c(min(c(ttot,stSp[4,]),na.rm=T),
-                max(c(ttot,stSp[4,]),na.rm=T)),
-         ylim=c(min(c(ttot,stSp[4,]),na.rm=T),
-                max(c(ttot,stSp[4,]),na.rm=T)),
-#         xlim=c(0,6),
-#         ylim=c(0,6),
+#         xlim=c(min(c(ttot,stSp[4,]),na.rm=T),
+#                max(c(ttot,stSp[4,]),na.rm=T)),
+#         ylim=c(min(c(ttot,stSp[4,]),na.rm=T),
+#                max(c(ttot,stSp[4,]),na.rm=T)),
+         xlim=c(-2,4),
+         ylim=c(0,3),
 #           main=paste("/ #sus=",length(susi)),
          main="",
          xlab="Observations (mm)",
          ylab="Standard deviation (mm)",col="white" )
     points(ttot,stSp[4,],pch=19,col="black")
-    lines(-100:100,-100:100,col="gray")
+#    lines(-100:100,-100:100,col="gray")
     points(ttot[susi],stSp[4,susi],pch=19,col="red")
-    abline(h=seq(-1000,10000,by=2.5),col="gray",lty=2)
-    abline(v=seq(-1000,10000,by=2.5),col="gray",lty=2)
-    abline(h=0,lwd=2,col="gray",lty=1)
-    abline(v=0,lwd=2,col="gray",lty=1)
+    abline(h=seq(-1000,10000,by=.25),col="gray",lty=3)
+    abline(h=seq(-1000,10000,by=1),col="gray",lty=2)
+    abline(v=seq(-1000,10000,by=1),col="gray",lty=2)
+    abline(h=0,lwd=2,col="blue",lty=1)
+    abline(v=-2,lwd=2,col="blue",lty=1)
     dev.off()
     #
     susi<-which(dqcflag[ix]==buddy.code)
@@ -1664,7 +1664,7 @@ if (argv$verbose | argv$debug) {
       xmxj<-xtot[i]+argv$dr.buddy
       ymnj<-ytot[i]-argv$dr.buddy
       ymxj<-ytot[i]+argv$dr.buddy
-      e<-extent(xmnj,xmxj,ymnj,ymxj)
+      ee<-extent(xmnj,xmxj,ymnj,ymxj)
       plot(xtot,xtot,
            xlim=c(xmnj-1*argv$dr.buddy,xmxj+1*argv$dr.buddy),
            ylim=c(ymnj-1*argv$dr.buddy,ymxj+1*argv$dr.buddy),
@@ -1675,13 +1675,13 @@ if (argv$verbose | argv$debug) {
       br<-boxcox(brt,
                  lambda=argv$boxcox.lambda)
       col<-c("beige",rev(rainbow((length(br)-2))))
+      xmnj<-xtot[i]-2*argv$dr.buddy
+      xmxj<-xtot[i]+2*argv$dr.buddy
+      ymnj<-ytot[i]-2*argv$dr.buddy
+      ymxj<-ytot[i]+2*argv$dr.buddy
       if (file.exists(argv$dem.file) & 
           xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
           ymnj>=rdem.ymn & ymxj<=rdem.ymx ) {
-        xmnj<-xtot[i]-2*argv$dr.buddy
-        xmxj<-xtot[i]+2*argv$dr.buddy
-        ymnj<-ytot[i]-2*argv$dr.buddy
-        ymxj<-ytot[i]+2*argv$dr.buddy
         ed<-extent(xmnj,xmxj,ymnj,ymxj)
         dem0<-crop(rdem,ed)
         image(dem0,add=T,
@@ -1712,11 +1712,12 @@ if (argv$verbose | argv$debug) {
           points(xtot[aux],ytot[aux],pch=2,col="black",cex=2)
         }
       }
-      plot(e,add=T,lwd=3)
+      plot(ee,add=T,lwd=3)
 #      legend(x="bottomright",fill=rev(col),legend=rev(legstr),cex=1.5)
       dev.off()
     }
   }
+  print("+---------------------------------+")
 }
 #
 #-----------------------------------------------------------------------------
@@ -1896,7 +1897,7 @@ if (argv$debug) {
     xmxj<-x[i]+30000
     ymnj<-y[i]-30000
     ymxj<-y[i]+30000
-    e<-extent(xmnj,xmxj,ymnj,ymxj)
+    ee<-extent(xmnj,xmxj,ymnj,ymxj)
     plot(x,y,
          xlim=c(xmnj,xmxj),
          ylim=c(ymnj,ymxj),
@@ -1906,7 +1907,7 @@ if (argv$debug) {
     if (file.exists(argv$dem.file) &
         xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
         ymnj>=rdem.ymn & ymxj<=rdem.ymx) {
-      dem0<-crop(rdem,e)
+      dem0<-crop(rdem,ee)
       image(dem0,add=T,
             breaks=c(0,10,25,50,100,250,500,750,1000,
                      1250,1500,1750,2000,2500,3000),
@@ -1974,7 +1975,7 @@ if (argv$debug) {
     xmxj<-x[i]+30000
     ymnj<-y[i]-30000
     ymxj<-y[i]+30000
-    e<-extent(xmnj,xmxj,ymnj,ymxj)
+    ee<-extent(xmnj,xmxj,ymnj,ymxj)
     plot(x,y,
          xlim=c(xmnj,xmxj),
          ylim=c(ymnj,ymxj),
@@ -1984,7 +1985,7 @@ if (argv$debug) {
     if (file.exists(argv$dem.file) & 
         xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
         ymnj>=rdem.ymn & ymxj<=rdem.ymx ) {
-      dem0<-crop(rdem,e)
+      dem0<-crop(rdem,ee)
       image(dem0,add=T,
             breaks=c(0,10,25,50,100,250,500,750,1000,
                      1250,1500,1750,2000,2500,3000),
