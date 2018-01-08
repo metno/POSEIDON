@@ -17,6 +17,10 @@ Available checks are (applied sequentially as in this list):
 
 * Spatial Consistency Test (SCT)
 
+* (repeat: check for isolated dry observations)
+
+* (repeat: check for isolated wet observations)
+
 * check elevations against digital elevation model (optional)
 
 * detect isolated observations
