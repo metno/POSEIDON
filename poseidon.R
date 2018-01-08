@@ -171,6 +171,10 @@ sct<-function(ixynp,
 #      as.numeric(quantile(zopt,probs=0.05))
 #  assign("topt",ttot[j],envir=.GlobalEnv)
   to<-ttot[j]
+  ta<-to
+  tav<-to
+  ta[]<-NA
+  tav[]<-NA
   #
   tb<-tbtot[j]
   # OI for SCT (Lussana et al., 2010)
@@ -226,6 +230,8 @@ sct<-function(ixynp,
     SRinv.d<-crossprod(SRinv,d[sel])
     ares<-crossprod(S,SRinv.d)-d[sel] #   a-Obs
     cvres<--Zinv*SRinv.d              # CVa-Obs
+    ta[sel]<-to[sel]+ares
+    tav[sel]<-to[sel]+cvres
     sig2o<-mean(d[sel]*(-ares))       # Lussana et al 2010, Eq(32)
     if (sig2o<0.01) sig2o<-0.01       # safe threshold  
     # pog=cvres/(sig2obs+sig2CVpred), Lussana et al 2010 Eq(20)
@@ -262,46 +268,71 @@ sct<-function(ixynp,
     gold<-which(dqctmp==keep.code)
     if (!dir.exists(argv$debug.dir)) 
       dir.create(argv$debug.dir,showWarnings=F,recursive=T)
-#    f<-file.path(argv$debug.dir,
-#         paste("poseidon_sctm_it_",formatC(i,width=2,flag="0"),
-#               "_subd",formatC(ixynp[1],width=5,flag="0"),".png",sep=""))
-#    png(file=f,width=800,height=800)
-#    plot(to,tb,xlim=c(max(-30,min(to)),min(30,max(to))),
-#                   ylim=c(0,min(2000,max(zopt))) )
-#    zz<-seq(0,2000,by=0.1)
-#    if (dz<dzmin | ixynp[4]<nmin) {
-#      points(tvertprof_basic(zz,t0=opt$minimum,gamma=gamma.standard),
-#             zz,col="blue",pch=19,cex=0.5)
-#    } else {
-#      points(tvertprof(zz,t0=opt$par[1],gamma=opt$par[2],
-#                       a=opt$par[3],h0=opt$par[4],h1i=opt$par[5]),
-#             zz,col="blue",pch=19,cex=0.5)
-#    }
-#    points(to[susi],zopt[susi],pch=19,col="red")
-#    if (length(gold)>0) points(to[gold],zopt[gold],pch=19,col="gold")
-#    abline(h=seq(-1000,10000,by=100),col="gray",lty=2)
-#    abline(h=0,lwd=2,col="black")
-#    dev.off()
+    f<-file.path(argv$debug.dir,
+         paste("poseidon_sctm_it_",formatC(i,width=2,flag="0"),
+               "_subd",formatC(ixynp[1],width=5,flag="0"),".png",sep=""))
+    png(file=f,width=800,height=800)
+    aux<-which(is.na(dqctmp))
+    plot(to[aux],tb[aux],
+         xlim=c(-2,max(c(to,tb,ta,tav,na.rm=T))),
+         ylim=c(-2,max(c(to,tb,ta,tav,na.rm=T))),
+         pch=19,col="black",cex=2)
+    points(to[aux],tav[aux],pch=19,col="blue",cex=2)
+    points(to[aux],ta[aux],pch=19,col="cyan",cex=2)
+    lines(-100:100,-100:100,col="gray",lty=1)
+    abline(h=seq(-100,100,by=0.25),lty=2,col="gray")
+    abline(v=seq(-100,100,by=0.25),lty=2,col="gray")
+    aux<-which(dqctmp==sct.code)
+    points(to[aux],tb[aux],pch=17,col="black",cex=2.2)
+    points(to[aux],tav[aux],pch=17,col="red",cex=2.2)
+    points(to[aux],ta[aux],pch=17,col="pink",cex=2.2)
+    dev.off()
     f<-file.path(argv$debug.dir,
          paste("poseidon_scthorz_it_",formatC(i,width=2,flag="0"),
                "_subd",formatC(ixynp[1],width=5,flag="0"),".png",sep=""))
     png(file=f,width=800,height=800)
     plot(xtot[j],ytot[j])
-#    if (argv$dem | argv$dem.fill) {
-#      if (!exists("dem1"))
-#        dem1<-crop(rdem,
-#                   extent(c(ixynp[2]-100000,
-#                            ixynp[2]+100000,
-#                            ixynp[3]-100000,
-#                            ixynp[3]+100000
-#                            )))
-#      image(dem1,add=T,
-#            breaks=c(0,10,25,50,100,250,500,750,1000,1250,1500,1750,2000,2500,3000),
-#            col=gray.colors(14))
-#    }
-    points(xtot[j],ytot[j],pch=19,col="blue")
-    points(xtot[j[susi]],ytot[j[susi]],pch=19,col="red")
-    if (length(gold)>0) points(to[gold],zopt[gold],pch=19,col="gold")
+    xmna<-ixynp[2]-100000
+    xmxa<-ixynp[2]+100000
+    ymna<-ixynp[3]-100000
+    ymxa<-ixynp[3]+100000
+    if ( (argv$dem | argv$dem.fill) &
+        (xmna>=rdem.xmn & xmxa<=rdem.xmx & 
+         ymna>=rdem.ymn & ymxa<=rdem.ymx) ) {
+      if (!exists("dem1"))
+        dem1<-crop(rdem,extent(c(xmna,xmxa,ymna,ymxa)))
+      image(dem1,add=T,
+            breaks=c(0,10,25,50,100,250,500,750,1000,1250,1500,1750,2000,2500,3000),
+            col=gray.colors(14))
+    }
+    brt<-c(0,0.1,0.5,1,2,3,4,5,6,7,8,9,10,3000)
+    br<-boxcox(brt,
+               lambda=argv$boxcox.lambda)
+    col<-c("beige",rev(rainbow((length(br)-2))))
+    for (c in 1:length(col)) {
+      if (c==1) {
+        legstr<-paste("<",brt[2],"mm",sep="")
+      } else if (c==length(col)) {
+        legstr<-c(legstr,paste(">=",brt[c],sep=""))
+      } else {
+        legstr<-c(legstr,paste("[",brt[c],",",brt[c+1],")",sep=""))
+      }
+      aux<-which(to>=br[c] & 
+                 to<br[c+1] & 
+                 is.na(dqctmp))
+      if (length(aux)>0) {
+        points(xtot[j][aux],ytot[j][aux],pch=19,col=col[c],cex=2)
+        points(xtot[j][aux],ytot[j][aux],pch=1,col="black",cex=2)
+      }
+      aux<-which(to>=br[c] & 
+                 to<br[c+1] & 
+                 dqctmp==sct.code)
+      if (length(aux)>0) {
+        points(xtot[j][aux],ytot[j][aux],pch=17,col=col[c],cex=2)
+        points(xtot[j][aux],ytot[j][aux],pch=2,col="black",cex=2)
+      }
+    }
+    legend(x="bottomright",fill=rev(col),legend=rev(legstr),cex=1.5)
     dev.off()
   }
   # debug: end
@@ -621,6 +652,70 @@ RR1_dqc_isolatedWet<-function(obs,
   ydqc.flag
 }
 
+#+ plot summary figures 
+plotsummary<-function(ixynp) {
+#------------------------------------------------------------------------------
+  # something strange with the number of stations
+  if (is.na(ixynp[4]) | is.null(ixynp[4]) | !is.finite(ixynp[4]) ) return(NA)
+  xmna<-ixynp[2]-res(r)[1]/2
+  xmxa<-ixynp[2]+res(r)[1]/2
+  ymna<-ixynp[3]-res(r)[2]/2
+  ymxa<-ixynp[3]+res(r)[2]/2
+  # j, index for the stations in the box
+  j<-which(itot==ixynp[1])
+  to<-data$value[j]
+  dqctmp<-dqcflag[j]
+  susj<-which(dqctmp!=0)
+  good<-which(dqctmp==0)
+  if (!dir.exists(argv$debug.dir)) 
+    dir.create(argv$debug.dir,showWarnings=F,recursive=T)
+  f<-file.path(argv$debug.dir,
+       paste("poseidon_summary_subd",
+             formatC(ixynp[1],width=5,flag="0"),
+             ".png",sep=""))
+  png(file=f,width=800,height=800)
+  plot(x[j],y[j],col="white",xlim=c(xmna,xmxa),ylim=c(ymna,ymxa))
+  if ( (argv$dem | argv$dem.fill) &
+       (xmna>=rdem.xmn & xmxa<=rdem.xmx & 
+        ymna>=rdem.ymn & ymxa<=rdem.ymx) ) {
+    if (!exists("dem1"))
+      dem1<-crop(rdem,extent(c(xmna,xmxa,ymna,ymxa)))
+    image(dem1,add=T,
+          breaks=c(0,10,25,50,100,250,500,750,
+                   1000,1250,1500,1750,2000,2500,3000),
+            col=gray.colors(14))
+  }
+  br<-c(0,0.1,0.5,1,2,3,4,5,6,7,8,9,10,3000)
+  col<-c("beige",rev(rainbow((length(br)-2))))
+  for (c in 1:length(col)) {
+    if (c==1) {
+      legstr<-paste("<",br[2],"mm",sep="")
+    } else if (c==length(col)) {
+      legstr<-c(legstr,paste(">=",br[c],sep=""))
+    } else {
+      legstr<-c(legstr,paste("[",br[c],",",br[c+1],")",sep=""))
+    }
+    aux<-which(to>=br[c] & 
+               to<br[c+1] & 
+               dqctmp==0)
+    if (length(aux)>0) {
+      points(x[j][aux],y[j][aux],pch=19,col=col[c],cex=2)
+      points(x[j][aux],y[j][aux],pch=1,col="black",cex=2)
+    }
+    aux<-which(to>=br[c] & 
+               to<br[c+1] & 
+               dqctmp!=0)
+    if (length(aux)>0) {
+      points(x[j][aux],y[j][aux],pch=17,col=col[c],cex=2)
+      points(x[j][aux],y[j][aux],pch=2,col="black",cex=2)
+    }
+  }
+  legend(x="bottomright",fill=rev(col),legend=rev(legstr),cex=1.5)
+  dev.off()
+  # debug: end
+  return(0)
+}
+
 
 #==============================================================================
 #  MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN
@@ -801,7 +896,7 @@ p <- add_argument(p, "--n.sct",help="minimum number of stations in a box to run 
                   type="integer",default=2,short="-nS")
 p <- add_argument(p, "--dr.sct",
                   help="distance defining the neighbourhood used to obtain the background by averaging observations [m]",
-                  type="numeric",default=10000,short="-dS")
+                  type="numeric",default=20000,short="-dS")
 p <- add_argument(p, "--nbg.sct",
                   help="minimum number of stations to compute the background value",
                   type="numeric",default=10,short="-nbgS")
@@ -1745,13 +1840,23 @@ for (i in 1:argv$i.sct) {
     ttot<-boxcox(x=data$value[ix],lambda=argv$boxcox.lambda)
     # apply will loop over this 4D array
     ixyzt_tot<-cbind(1:length(xtot),xtot,ytot,ztot,ttot)
-    stSp<-apply(ixyzt_tot,FUN=statSpat,MARGIN=1,drmin=argv$dr.sct,tcor.flag=F)
+    stSp<-apply(ixyzt_tot,
+                FUN=statSpat,
+                MARGIN=1,
+                drmin=argv$dr.sct,
+                tcor.flag=F)
     ixok<-which(stSp[1,]>argv$nbg.sct & 
                 data$value[ix]>argv$rr.sct)
     if (length(ixok)>3) {
-      m<-as.numeric(lm(stSp[3,ixok]~ttot[ixok]+0)$coefficients)
+      # linear regression such that x=1/argv$boxcox.lambda corresponds 
+      #  to y=1/argv$boxcox.lambda 
+      yyy<-stSp[3,ixok]+1/argv$boxcox.lambda
+      xxx<-ttot[ixok]+1/argv$boxcox.lambda
+      m<-as.numeric(lm(yyy~xxx+0)$coefficients)
+      rm(yyy,xxx)
       # background (large scale) value
-      tbtot<-m*ttot 
+      tbtot<-m*ttot+1/argv$boxcox.lambda*m-1/argv$boxcox.lambda
+      tbtot[which(!is.na(stSp[3,]))]<-stSp[3,][which(!is.na(stSp[3,]))]
       # assign each station to the corresponding box
       itot<-extract(r,cbind(xtot,ytot))
       # count the number of observations in each box
@@ -1799,10 +1904,11 @@ for (i in 1:argv$i.sct) {
                       "/ #sus=",length(susi)),
            xlab="Observations (Box-Cox transformed)",
            ylab="Large-Scale value / Background" )
-      lines(-100:100,m*-100:100,col="darkblue")
+      aaa<-m*-100:100+1/argv$boxcox.lambda*m-1/argv$boxcox.lambda
+      lines(-100:100,aaa,col="darkblue")
       lines(-100:100,-100:100,col="gray")
-      points(ttot,m*ttot,col="blue")
-      points(ttot[susi],m*ttot[susi],pch=19,col="red")
+      points(ttot,m*ttot+1/argv$boxcox.lambda*m-1/argv$boxcox.lambda,col="blue")
+      points(ttot[susi],m*ttot[susi]+1/argv$boxcox.lambda*m-1/argv$boxcox.lambda,pch=19,col="red")
       abline(h=seq(-1000,10000,by=10),col="gray",lty=2)
       abline(v=seq(-1000,10000,by=10),col="gray",lty=2)
       abline(h=0,lwd=2,col="gray",lty=1)
@@ -2053,6 +2159,30 @@ if (argv$verbose | argv$debug) {
               length(which(dqcflag!=0))," [",
               round(100*length(which(dqcflag!=0))/ndata,0),
               "%]",sep="") )
+}
+#
+#-----------------------------------------------------------------------------
+# Debug: create Figures 
+if (argv$debug) {
+  r<-raster(e,ncol=argv$grid.sct[2],nrow=argv$grid.sct[1])
+  xy<-xyFromCell(r,1:ncell(r))
+  xr<-xy[,1]
+  yr<-xy[,2]
+  ir<-1:ncell(r)
+  r[]<-1:ncell(r)
+  # apply will loop over this 4D array
+  ixyzt<-cbind(1:length(x),x,y,z,data$value)
+  # assign each station to the corresponding box
+  itot<-extract(r,cbind(x,y))
+  # count the number of observations in each box
+  rnobs<-rasterize(cbind(x,y),r,data$value,fun=function(x,...)length(x))
+  nr<-getValues(rnobs)
+  # create the 4D array for the function call via apply
+  ixyn<-cbind(ir,xr,yr,nr)
+  out<-apply(ixyn,
+             FUN=plotsummary,
+             MARGIN=1)
+
 }
 #
 #-----------------------------------------------------------------------------
