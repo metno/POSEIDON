@@ -747,6 +747,9 @@ p <- add_argument(p, "--latmin",help="latitude of south-eastern domain corner",
 p <- add_argument(p, "--latmax",help="latitude of north-western domain corner",
                   type="numeric",default=71.8,short="-lax")
 # variable names
+p <- add_argument(p, "--separator",
+                  help="separator character",
+                  type="character",default=";")
 p <- add_argument(p, "--varname.lat",
                   help="name for the latitude variable (in/out)",
                   type="character",default="lat",short="-vlat")
@@ -1166,7 +1169,7 @@ keep.code<-200
 # read data
 first<-T
 for (f in 1:nfin) {
-  datain<-read.table(file=argv$input.files[f],header=T,sep=";",
+  datain<-read.table(file=argv$input.files[f],header=T,sep=argv$separator,
                       stringsAsFactors=F,strip.white=T)
   varidx<-match(c(argv$varname.lat,
                   argv$varname.lon,
