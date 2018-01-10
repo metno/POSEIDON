@@ -1169,19 +1169,20 @@ keep.code<-200
 # read data
 first<-T
 for (f in 1:nfin) {
-  datain<-read.table(file=argv$input.files[f],header=T,sep=argv$separator,
-                      stringsAsFactors=F,strip.white=T)
+  datain<-read.table(file=argv$input.files[f],
+                     header=T,sep=argv$separator,
+                     stringsAsFactors=F,strip.white=T)
   varidx<-match(c(argv$varname.lat,
                   argv$varname.lon,
                   argv$varname.elev,
-                  argv$varname.val),
+                  argv$varname.value),
                 names(datain))
   if (any(is.na(varidx))) {
     print("ERROR in the specification of the variable names")
     print(paste("  latitutde=",argv$varname.lat))
     print(paste("  longitude=",argv$varname.lon))
     print(paste("  elevation=",argv$varname.elev))
-    print(paste("temperature=",argv$varname.val))
+    print(paste("      value=",argv$varname.value))
     print("header of input file:")
     print(argv$input.files[f])
     print(names(datain))
