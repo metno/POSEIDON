@@ -685,7 +685,8 @@ plotsummary<-function(ixynp) {
                    1000,1250,1500,1750,2000,2500,3000),
             col=gray.colors(14))
   }
-  br<-c(0,0.1,0.5,1,2,3,4,5,6,7,8,9,10,3000)
+#  br<-c(0,0.1,0.5,1,2,3,4,5,6,7,8,9,10,3000)
+  br<-c(0,0.1,1,5,10,20,30,50,70,90,100,150,250,1000)
   col<-c("beige",rev(rainbow((length(br)-2))))
   for (c in 1:length(col)) {
     if (c==1) {
@@ -693,7 +694,8 @@ plotsummary<-function(ixynp) {
     } else if (c==length(col)) {
       legstr<-c(legstr,paste(">=",br[c],sep=""))
     } else {
-      legstr<-c(legstr,paste("[",br[c],",",br[c+1],")",sep=""))
+#      legstr<-c(legstr,paste("[",br[c],",",br[c+1],")",sep=""))
+      legstr<-c(legstr,paste(br[c+1],sep=""))
     }
     aux<-which(to>=br[c] & 
                to<br[c+1] & 
@@ -710,7 +712,7 @@ plotsummary<-function(ixynp) {
       points(x[j][aux],y[j][aux],pch=2,col="black",cex=2)
     }
   }
-  legend(x="bottomright",fill=rev(col),legend=rev(legstr),cex=1.5)
+  legend(x="bottomright",fill=rev(col),legend=rev(legstr),cex=.8,horiz=T,x.intersp=0.25)
   dev.off()
   # debug: end
   return(0)
@@ -1754,6 +1756,8 @@ if (argv$verbose | argv$debug) {
     susi<-which(dqcflag[ix]==buddy.code)
     for (j in 1:length(susi)) {
       i<-susi[j]
+      if (length(i)==0) next
+      if (is.na(i)) next
       f<-file.path(argv$debug.dir,
            paste("poseidon_buddy_",
                  formatC(i,width=5,flag="0"),
