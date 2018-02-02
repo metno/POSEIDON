@@ -263,78 +263,78 @@ sct<-function(ixynp,
   corep[ix[j[sel]]]<-(d[sel]*(-ares))/sig2o
   assign("corep",corep,envir=.GlobalEnv)
   # debug: begin
-  if (argv$debug) {
-    susi<-which(!is.na(dqctmp) & dqctmp!=keep.code)
-    gold<-which(dqctmp==keep.code)
-    if (!dir.exists(argv$debug.dir)) 
-      dir.create(argv$debug.dir,showWarnings=F,recursive=T)
-    f<-file.path(argv$debug.dir,
-         paste("poseidon_sctm_it_",formatC(i,width=2,flag="0"),
-               "_subd",formatC(ixynp[1],width=5,flag="0"),".png",sep=""))
-    png(file=f,width=800,height=800)
-    aux<-which(is.na(dqctmp))
-    plot(to[aux],tb[aux],
-         xlim=c(-2,max(c(to,tb,ta,tav,na.rm=T))),
-         ylim=c(-2,max(c(to,tb,ta,tav,na.rm=T))),
-         pch=19,col="black",cex=2)
-    points(to[aux],tav[aux],pch=19,col="blue",cex=2)
-    points(to[aux],ta[aux],pch=19,col="cyan",cex=2)
-    lines(-100:100,-100:100,col="gray",lty=1)
-    abline(h=seq(-100,100,by=0.25),lty=2,col="gray")
-    abline(v=seq(-100,100,by=0.25),lty=2,col="gray")
-    aux<-which(dqctmp==sct.code)
-    points(to[aux],tb[aux],pch=17,col="black",cex=2.2)
-    points(to[aux],tav[aux],pch=17,col="red",cex=2.2)
-    points(to[aux],ta[aux],pch=17,col="pink",cex=2.2)
-    dev.off()
-    f<-file.path(argv$debug.dir,
-         paste("poseidon_scthorz_it_",formatC(i,width=2,flag="0"),
-               "_subd",formatC(ixynp[1],width=5,flag="0"),".png",sep=""))
-    png(file=f,width=800,height=800)
-    plot(xtot[j],ytot[j])
-    xmna<-ixynp[2]-100000
-    xmxa<-ixynp[2]+100000
-    ymna<-ixynp[3]-100000
-    ymxa<-ixynp[3]+100000
-    if ( (argv$dem | argv$dem.fill) &
-        (xmna>=rdem.xmn & xmxa<=rdem.xmx & 
-         ymna>=rdem.ymn & ymxa<=rdem.ymx) ) {
-      if (!exists("dem1"))
-        dem1<-crop(rdem,extent(c(xmna,xmxa,ymna,ymxa)))
-      image(dem1,add=T,
-            breaks=c(0,10,25,50,100,250,500,750,1000,1250,1500,1750,2000,2500,3000),
-            col=gray.colors(14))
-    }
-    brt<-c(0,0.1,0.5,1,2,3,4,5,6,7,8,9,10,3000)
-    br<-boxcox(brt,
-               lambda=argv$boxcox.lambda)
-    col<-c("beige",rev(rainbow((length(br)-2))))
-    for (c in 1:length(col)) {
-      if (c==1) {
-        legstr<-paste("<",brt[2],"mm",sep="")
-      } else if (c==length(col)) {
-        legstr<-c(legstr,paste(">=",brt[c],sep=""))
-      } else {
-        legstr<-c(legstr,paste("[",brt[c],",",brt[c+1],")",sep=""))
-      }
-      aux<-which(to>=br[c] & 
-                 to<br[c+1] & 
-                 is.na(dqctmp))
-      if (length(aux)>0) {
-        points(xtot[j][aux],ytot[j][aux],pch=19,col=col[c],cex=2)
-        points(xtot[j][aux],ytot[j][aux],pch=1,col="black",cex=2)
-      }
-      aux<-which(to>=br[c] & 
-                 to<br[c+1] & 
-                 dqctmp==sct.code)
-      if (length(aux)>0) {
-        points(xtot[j][aux],ytot[j][aux],pch=17,col=col[c],cex=2)
-        points(xtot[j][aux],ytot[j][aux],pch=2,col="black",cex=2)
-      }
-    }
-    legend(x="bottomright",fill=rev(col),legend=rev(legstr),cex=1.5)
-    dev.off()
-  }
+#  if (argv$debug) {
+#    susi<-which(!is.na(dqctmp) & dqctmp!=keep.code)
+#    gold<-which(dqctmp==keep.code)
+#    if (!dir.exists(argv$debug.dir)) 
+#      dir.create(argv$debug.dir,showWarnings=F,recursive=T)
+#    f<-file.path(argv$debug.dir,
+#         paste("poseidon_sctm_it_",formatC(i,width=2,flag="0"),
+#               "_subd",formatC(ixynp[1],width=5,flag="0"),".png",sep=""))
+#    png(file=f,width=800,height=800)
+#    aux<-which(is.na(dqctmp))
+#    plot(to[aux],tb[aux],
+#         xlim=c(-2,max(c(to,tb,ta,tav,na.rm=T))),
+#         ylim=c(-2,max(c(to,tb,ta,tav,na.rm=T))),
+#         pch=19,col="black",cex=2)
+#    points(to[aux],tav[aux],pch=19,col="blue",cex=2)
+#    points(to[aux],ta[aux],pch=19,col="cyan",cex=2)
+#    lines(-100:100,-100:100,col="gray",lty=1)
+#    abline(h=seq(-100,100,by=0.25),lty=2,col="gray")
+#    abline(v=seq(-100,100,by=0.25),lty=2,col="gray")
+#    aux<-which(dqctmp==sct.code)
+#    points(to[aux],tb[aux],pch=17,col="black",cex=2.2)
+#    points(to[aux],tav[aux],pch=17,col="red",cex=2.2)
+#    points(to[aux],ta[aux],pch=17,col="pink",cex=2.2)
+#    dev.off()
+#    f<-file.path(argv$debug.dir,
+#         paste("poseidon_scthorz_it_",formatC(i,width=2,flag="0"),
+#               "_subd",formatC(ixynp[1],width=5,flag="0"),".png",sep=""))
+#    png(file=f,width=800,height=800)
+#    plot(xtot[j],ytot[j])
+#    xmna<-ixynp[2]-100000
+#    xmxa<-ixynp[2]+100000
+#    ymna<-ixynp[3]-100000
+#    ymxa<-ixynp[3]+100000
+#    if ( (argv$dem | argv$dem.fill) &
+#        (xmna>=rdem.xmn & xmxa<=rdem.xmx & 
+#         ymna>=rdem.ymn & ymxa<=rdem.ymx) ) {
+#      if (!exists("dem1"))
+#        dem1<-crop(rdem,extent(c(xmna,xmxa,ymna,ymxa)))
+#      image(dem1,add=T,
+#            breaks=c(0,10,25,50,100,250,500,750,1000,1250,1500,1750,2000,2500,3000),
+#            col=gray.colors(14))
+#    }
+#    brt<-c(0,0.1,0.5,1,2,3,4,5,6,7,8,9,10,3000)
+#    br<-boxcox(brt,
+#               lambda=argv$boxcox.lambda)
+#    col<-c("beige",rev(rainbow((length(br)-2))))
+#    for (c in 1:length(col)) {
+#      if (c==1) {
+#        legstr<-paste("<",brt[2],"mm",sep="")
+#      } else if (c==length(col)) {
+#        legstr<-c(legstr,paste(">=",brt[c],sep=""))
+#      } else {
+#        legstr<-c(legstr,paste("[",brt[c],",",brt[c+1],")",sep=""))
+#      }
+#      aux<-which(to>=br[c] & 
+#                 to<br[c+1] & 
+#                 is.na(dqctmp))
+#      if (length(aux)>0) {
+#        points(xtot[j][aux],ytot[j][aux],pch=19,col=col[c],cex=2)
+#        points(xtot[j][aux],ytot[j][aux],pch=1,col="black",cex=2)
+#      }
+#      aux<-which(to>=br[c] & 
+#                 to<br[c+1] & 
+#                 dqctmp==sct.code)
+#      if (length(aux)>0) {
+#        points(xtot[j][aux],ytot[j][aux],pch=17,col=col[c],cex=2)
+#        points(xtot[j][aux],ytot[j][aux],pch=2,col="black",cex=2)
+#      }
+#    }
+#    legend(x="bottomright",fill=rev(col),legend=rev(legstr),cex=1.5)
+#    dev.off()
+#  }
   # debug: end
   return(length(which(dqctmp==sus.code)))
 }
@@ -820,7 +820,7 @@ p<-add_argument(p, "--i.isodry",
                 type="numeric",default=1,short="-iI")
 p<-add_argument(p, "--rr.isodry",
                 help="precipitation/no-precipitation threshold [mm]",
-                type="numeric",default=1,short="-rrI")
+                type="numeric",default=.1,short="-rrI")
 p<-add_argument(p, "--pmax.isodry",
     help="number of observations defining the neighbourhood to consider",
                 type="numeric",default=20,short="-pI")
@@ -855,7 +855,7 @@ p<-add_argument(p, "--i.isowet",
                 type="numeric",default=1,short="-iW")
 p<-add_argument(p, "--rr.isowet",
                 help="precipitation/no-precipitation threshold [mm]",
-                type="numeric",default=1,short="-rrW")
+                type="numeric",default=.1,short="-rrW")
 p<-add_argument(p, "--pmax.isowet",
     help="number of observations defining the neighbourhood to consider",
                 type="numeric",default=20,short="-pW")
@@ -1156,12 +1156,12 @@ nometa.code<-1
 p.code<-2
 clim.code<-3
 isodry.code<-4
-fg.code<-4
-isowet.code<-5
-buddy.code<-6
-sct.code<-7
-dem.code<-8
-isol.code<-9
+fg.code<-5
+isowet.code<-6
+buddy.code<-7
+sct.code<-8
+dem.code<-9
+isol.code<-10
 black.code<-100
 keep.code<-200
 #
@@ -1360,7 +1360,7 @@ if (argv$verbose | argv$debug) {
   print("test for no metdata")
 #  print(paste(data$lat[which(!meta)],data$lon[which(!meta)],
 #              z[which(!meta)],data$value[which(!meta)]))
-  print(paste("# observations lacking metadata=",length(which(!meta))))
+  print(paste("# observations lacking/weird(e.g. z<0m) metadata=",length(which(!meta))))
   print("+---------------------------------+")
 }
 #
@@ -1413,7 +1413,7 @@ for (i in 1:argv$i.isodry) {
                              dmax=argv$dmax.isodry,
                              n.sector=16,
                              dmin.dry=argv$dmin.isodry)
-    sus<-which(aux!=0)
+    sus<-which(aux!=0 & is.na(dqcflag[ix]))
     # set dqcflag
     if (length(sus)>0) dqcflag[ix[sus]]<-isodry.code
   } else {
@@ -1429,47 +1429,47 @@ for (i in 1:argv$i.isodry) {
   }
 }
 #
-if (argv$debug) {
-  if (!dir.exists(argv$debug.dir)) 
-    dir.create(argv$debug.dir,showWarnings=F,recursive=T)
-  sus<-which(dqcflag==isodry.code)
-  for (j in 1:length(sus)) {
-    i<-sus[j]
-    f<-file.path(argv$debug.dir,
-         paste("poseidon_dry_",
-               formatC(i,width=2,flag="0"),
-               ".png",sep=""))
-    susi<-which(dqcflag==isodry.code)
-    png(file=f,width=800,height=800)
-    xmnj<-x[i]-30000
-    xmxj<-x[i]+30000
-    ymnj<-y[i]-30000
-    ymxj<-y[i]+30000
-    ee<-extent(xmnj,xmxj,ymnj,ymxj)
-    plot(x,y,
-         xlim=c(xmnj,xmxj),
-         ylim=c(ymnj,ymxj),
-         main="",
-         xlab="",
-         ylab="",cex=2, col="white")
-    if (file.exists(argv$dem.file) &
-        xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
-        ymnj>=rdem.ymn & ymxj<=rdem.ymx) {
-      dem0<-crop(rdem,ee)
-      image(dem0,add=T,
-            breaks=c(0,10,25,50,100,250,500,750,1000,
-                     1250,1500,1750,2000,2500,3000),
-            col=gray.colors(14))
-    }
-    susi<-which(dqcflag==isodry.code)
-    wet<-which(data$value>=argv$rr.isodry & is.na(dqcflag))
-    dry<-which(data$value<argv$rr.isodry & is.na(dqcflag))
-    points(x[wet],y[wet],pch=19,col="blue",cex=2)
-    points(x[dry],y[dry],pch=15,col="orange",cex=2)
-    points(x[susi],y[susi],pch=17,col="red",cex=2)
-    dev.off()
-  }
-}
+#if (argv$debug) {
+#  if (!dir.exists(argv$debug.dir)) 
+#    dir.create(argv$debug.dir,showWarnings=F,recursive=T)
+#  sus<-which(dqcflag==isodry.code)
+#  for (j in 1:length(sus)) {
+#    i<-sus[j]
+#    f<-file.path(argv$debug.dir,
+#         paste("poseidon_dry_",
+#               formatC(i,width=2,flag="0"),
+#               ".png",sep=""))
+#    susi<-which(dqcflag==isodry.code)
+#    png(file=f,width=800,height=800)
+#    xmnj<-x[i]-30000
+#    xmxj<-x[i]+30000
+#    ymnj<-y[i]-30000
+#    ymxj<-y[i]+30000
+#    ee<-extent(xmnj,xmxj,ymnj,ymxj)
+#    plot(x,y,
+#         xlim=c(xmnj,xmxj),
+#         ylim=c(ymnj,ymxj),
+#         main="",
+#         xlab="",
+#         ylab="",cex=2, col="white")
+#    if (file.exists(argv$dem.file) &
+#        xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
+#        ymnj>=rdem.ymn & ymxj<=rdem.ymx) {
+#      dem0<-crop(rdem,ee)
+#      image(dem0,add=T,
+#            breaks=c(0,10,25,50,100,250,500,750,1000,
+#                     1250,1500,1750,2000,2500,3000),
+#            col=gray.colors(14))
+#    }
+#    susi<-which(dqcflag==isodry.code)
+#    wet<-which(data$value>=argv$rr.isodry & is.na(dqcflag))
+#    dry<-which(data$value<argv$rr.isodry & is.na(dqcflag))
+#    points(x[wet],y[wet],pch=19,col="blue",cex=2)
+#    points(x[dry],y[dry],pch=15,col="orange",cex=2)
+#    points(x[susi],y[susi],pch=17,col="red",cex=2)
+#    dev.off()
+#  }
+#}
 if (argv$verbose | argv$debug) 
   print("+---------------------------------+")
 options(warn = 2, scipen = 999)
@@ -1497,7 +1497,10 @@ if (!is.na(argv$file.fg)) {
       rfg.ymn<-ymin(rfg)
       rfg.ymx<-ymax(rfg)
       rrfg<-extract(rfg,cbind(xtot,ytot),buffer=argv$dr.fg,fun=max,na.rm=T)
-      sus<-which(rrfg>=argv$rr.fg & ttot<argv$rr.fg)
+      sus<-which(rrfg>=argv$rr.fg               & 
+                 ttot<argv$rr.fg                &
+                 !is.na(rrfg) & is.finite(rrfg) &
+                 is.na(dqcflag[ix]))
       if (length(sus)>0) dqcflag[ix[sus]]<-fg.code
     }
   } else {
@@ -1518,12 +1521,12 @@ if (!is.na(argv$file.fg)) {
       susi<-which(dqcflag[ix]==fg.code)
       png(file=f,width=800,height=800)
       plot(ttot,rrfg,
-#           xlim=c(min(c(ttot,rrfg),na.rm=T),
-#                  max(c(ttot,rrfg),na.rm=T)),
-#           ylim=c(min(c(ttot,rrfg),na.rm=T),
-#                  max(c(ttot,rrfg),na.rm=T)),
-           xlim=c(0,6),
-           ylim=c(0,6),
+           xlim=c(min(c(ttot,rrfg),na.rm=T),
+                  max(c(ttot,rrfg),na.rm=T)),
+           ylim=c(min(c(ttot,rrfg),na.rm=T),
+                  max(c(ttot,rrfg),na.rm=T)),
+#           xlim=c(0,6),
+#           ylim=c(0,6),
 #           main=paste("/ #sus=",length(susi)),
            main="",
            xlab="Observations (mm)",
@@ -1549,7 +1552,6 @@ if (!is.na(argv$file.fg)) {
         xmxj<-x[i]+30000
         ymnj<-y[i]-30000
         ymxj<-y[i]+30000
-        ee<-extent(xmnj,xmxj,ymnj,ymxj)
         plot(x,y,
              xlim=c(xmnj,xmxj),
              ylim=c(ymnj,ymxj),
@@ -1558,8 +1560,12 @@ if (!is.na(argv$file.fg)) {
              ylab="",cex=2,col="white")
         br<-c(0,.1,.5,1,2,3,4,5,6,7,8,9,10,11,3000)
         col<-c("beige",rev(rainbow((length(br)-2))))
-        if (xmnj>=rfg.xmn & xmxj<=rfg.xmx & 
-            ymnj>=rfg.ymn & ymxj<=rfg.ymx ) {
+        xmnj1<-max(rfg.xmn,xmnj)
+        xmxj1<-min(rfg.xmx,xmxj)
+        ymnj1<-max(rfg.ymn,ymnj)
+        ymxj1<-min(rfg.ymx,ymxj)
+        if (xmnj1<xmxj1 & ymnj1<ymxj1) {
+          ee<-extent(xmnj1,xmxj1,ymnj1,ymxj1)
           fg0<-crop(rfg,ee)
           image(fg0,add=T,
                 breaks=br,
@@ -1599,7 +1605,7 @@ for (i in 1:argv$i.isowet) {
                              dmax=argv$dmax.isowet,
                              n.sector=16,
                              dmin.wet=argv$dmin.isowet)
-    sus<-which(aux!=0)
+    sus<-which(aux!=0 & is.na(dqcflag[ix]))
     # set dqcflag
     if (length(sus)>0) dqcflag[ix[sus]]<-isowet.code
   } else {
@@ -1698,13 +1704,12 @@ for (i in 1:argv$i.buddy) {
     print(paste("# suspect observations=",ncur-nprev))
     nprev<-length(which(dqcflag==buddy.code))
   }
-}
-if (argv$verbose | argv$debug) { 
+  #
   if (argv$debug) {
     if (!dir.exists(argv$debug.dir)) 
     dir.create(argv$debug.dir,showWarnings=F,recursive=T)
     f<-file.path(argv$debug.dir,
-         paste("poseidon_buddy_mean.png",sep=""))
+         paste("poseidon_buddy_mean_it_",i,".png",sep=""))
     susi<-which(dqcflag[ix]==buddy.code)
     png(file=f,width=800,height=800)
     plot(ttot,stSp[3,],
@@ -1727,7 +1732,7 @@ if (argv$verbose | argv$debug) {
     abline(v=0,lwd=2,col="gray",lty=1)
     dev.off()
     f<-file.path(argv$debug.dir,
-         paste("poseidon_buddy_sd.png",sep=""))
+         paste("poseidon_buddy_sd_it_",i,".png",sep=""))
     susi<-which(dqcflag[ix]==buddy.code)
     png(file=f,width=800,height=800)
     plot(ttot,stSp[4,],
@@ -1752,72 +1757,77 @@ if (argv$verbose | argv$debug) {
     dev.off()
     #
     susi<-which(dqcflag[ix]==buddy.code)
-    for (j in 1:length(susi)) {
-      i<-susi[j]
-      f<-file.path(argv$debug.dir,
-           paste("poseidon_buddy_",
-                 formatC(i,width=5,flag="0"),
-                 ".png",sep=""))
-      png(file=f,width=800,height=800)
-      xmnj<-xtot[i]-argv$dr.buddy
-      xmxj<-xtot[i]+argv$dr.buddy
-      ymnj<-ytot[i]-argv$dr.buddy
-      ymxj<-ytot[i]+argv$dr.buddy
-      ee<-extent(xmnj,xmxj,ymnj,ymxj)
-      plot(xtot,xtot,
-           xlim=c(xmnj-1*argv$dr.buddy,xmxj+1*argv$dr.buddy),
-           ylim=c(ymnj-1*argv$dr.buddy,ymxj+1*argv$dr.buddy),
-           main="",
-           xlab="",
-           ylab="",cex=2,col="white")
-      brt<-c(0,0.1,0.5,1,2,3,4,5,6,7,8,9,10,3000)
-      br<-boxcox(brt,
-                 lambda=argv$boxcox.lambda)
-      col<-c("beige",rev(rainbow((length(br)-2))))
-      xmnj<-xtot[i]-2*argv$dr.buddy
-      xmxj<-xtot[i]+2*argv$dr.buddy
-      ymnj<-ytot[i]-2*argv$dr.buddy
-      ymxj<-ytot[i]+2*argv$dr.buddy
-      if (file.exists(argv$dem.file) & 
-          xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
-          ymnj>=rdem.ymn & ymxj<=rdem.ymx ) {
-        ed<-extent(xmnj,xmxj,ymnj,ymxj)
-        dem0<-crop(rdem,ed)
-        image(dem0,add=T,
-              breaks=c(0,10,25,50,100,250,500,750,1000,
-                       1250,1500,1750,2000,2500,3000),
-              col=gray.colors(14))
+    if (length(susi)>0) {
+      for (j in 1:length(susi)) {
+        jj<-susi[j]
+        f<-file.path(argv$debug.dir,
+             paste("poseidon_buddy_it_",jj,"_",
+                   formatC(i,width=5,flag="0"),
+                   ".png",sep=""))
+        png(file=f,width=800,height=800)
+        xmnj<-xtot[jj]-argv$dr.buddy
+        xmxj<-xtot[jj]+argv$dr.buddy
+        ymnj<-ytot[jj]-argv$dr.buddy
+        ymxj<-ytot[jj]+argv$dr.buddy
+        ee<-extent(xmnj,xmxj,ymnj,ymxj)
+        plot(xtot,xtot,
+             xlim=c(xmnj-1*argv$dr.buddy,xmxj+1*argv$dr.buddy),
+             ylim=c(ymnj-1*argv$dr.buddy,ymxj+1*argv$dr.buddy),
+             main="",
+             xlab="",
+             ylab="",cex=2,col="white")
+        brt<-c(0,0.1,0.5,1,2,3,4,5,6,7,8,9,10,3000)
+        br<-boxcox(brt,
+                   lambda=argv$boxcox.lambda)
+        col<-c("beige",rev(rainbow((length(br)-2))))
+        xmnj<-xtot[jj]-2*argv$dr.buddy
+        xmxj<-xtot[jj]+2*argv$dr.buddy
+        ymnj<-ytot[jj]-2*argv$dr.buddy
+        ymxj<-ytot[jj]+2*argv$dr.buddy
+        if (file.exists(argv$dem.file) & 
+            xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
+            ymnj>=rdem.ymn & ymxj<=rdem.ymx ) {
+          ed<-extent(xmnj,xmxj,ymnj,ymxj)
+          dem0<-crop(rdem,ed)
+          image(dem0,add=T,
+                breaks=c(0,10,25,50,100,250,500,750,1000,
+                         1250,1500,1750,2000,2500,3000),
+                col=gray.colors(14))
+        }
+        for (c in 1:length(col)) {
+          if (c==1) {
+            legstr<-paste("<",brt[2],"mm",sep="")
+          } else if (c==length(col)) {
+            legstr<-c(legstr,paste(">=",brt[c],sep=""))
+          } else {
+            legstr<-c(legstr,paste("[",brt[c],",",brt[c+1],")",sep=""))
+          }
+          aux<-which(ttot>=br[c] & 
+                     ttot<br[c+1] & 
+                     is.na(dqcflag[ix]))
+          if (length(aux)>0) {
+            points(xtot[aux],ytot[aux],pch=19,col=col[c],cex=2)
+            points(xtot[aux],ytot[aux],pch=1,col="black",cex=2)
+          }
+          aux<-which(ttot>=br[c] & 
+                     ttot<br[c+1] & 
+                     dqcflag[ix]==buddy.code)
+          if (length(aux)>0) {
+            points(xtot[aux],ytot[aux],pch=17,col=col[c],cex=2)
+            points(xtot[aux],ytot[aux],pch=2,col="black",cex=2)
+          }
+        }
+        plot(ee,add=T,lwd=3)
+#        legend(x="bottomright",fill=rev(col),legend=rev(legstr),cex=1.5)
+        dev.off()
       }
-      for (c in 1:length(col)) {
-        if (c==1) {
-          legstr<-paste("<",brt[2],"mm",sep="")
-        } else if (c==length(col)) {
-          legstr<-c(legstr,paste(">=",brt[c],sep=""))
-        } else {
-          legstr<-c(legstr,paste("[",brt[c],",",brt[c+1],")",sep=""))
-        }
-        aux<-which(ttot>=br[c] & 
-                   ttot<br[c+1] & 
-                   is.na(dqcflag[ix]))
-        if (length(aux)>0) {
-          points(xtot[aux],ytot[aux],pch=19,col=col[c],cex=2)
-          points(xtot[aux],ytot[aux],pch=1,col="black",cex=2)
-        }
-        aux<-which(ttot>=br[c] & 
-                   ttot<br[c+1] & 
-                   dqcflag[ix]==buddy.code)
-        if (length(aux)>0) {
-          points(xtot[aux],ytot[aux],pch=17,col=col[c],cex=2)
-          points(xtot[aux],ytot[aux],pch=2,col="black",cex=2)
-        }
-      }
-      plot(ee,add=T,lwd=3)
-#      legend(x="bottomright",fill=rev(col),legend=rev(legstr),cex=1.5)
-      dev.off()
     }
   }
-  print("+---------------------------------+")
 }
+#
+if (argv$verbose | argv$debug) 
+  print("+---------------------------------+")
+
 #
 #-----------------------------------------------------------------------------
 # SCT - Spatial Consistency Test
@@ -1975,7 +1985,7 @@ for (i in 1:argv$i.isodry) {
                              dmax=argv$dmax.isodry,
                              n.sector=16,
                              dmin.dry=argv$dmin.isodry)
-    sus<-which(aux!=0)
+    sus<-which(aux!=0 & is.na(dqcflag[ix]))
     # set dqcflag
     if (length(sus)>0) dqcflag[ix[sus]]<-isodry.code
   } else {
@@ -2053,7 +2063,7 @@ for (i in 1:argv$i.isowet) {
                              dmax=argv$dmax.isowet,
                              n.sector=16,
                              dmin.wet=argv$dmin.isowet)
-    sus<-which(aux!=0)
+    sus<-which(aux!=0 & is.na(dqcflag[ix]))
     # set dqcflag
     if (length(sus)>0) dqcflag[ix[sus]]<-isowet.code
   } else {
