@@ -685,7 +685,8 @@ plotsummary<-function(ixynp) {
                    1000,1250,1500,1750,2000,2500,3000),
             col=gray.colors(14))
   }
-  br<-c(0,0.1,0.5,1,2,3,4,5,6,7,8,9,10,3000)
+#  br<-c(0,0.1,0.5,1,2,3,4,5,6,7,8,9,10,3000)
+  br<-c(0,0.1,1,5,10,20,30,50,70,90,100,150,250,1000)
   col<-c("beige",rev(rainbow((length(br)-2))))
   for (c in 1:length(col)) {
     if (c==1) {
@@ -693,7 +694,8 @@ plotsummary<-function(ixynp) {
     } else if (c==length(col)) {
       legstr<-c(legstr,paste(">=",br[c],sep=""))
     } else {
-      legstr<-c(legstr,paste("[",br[c],",",br[c+1],")",sep=""))
+#      legstr<-c(legstr,paste("[",br[c],",",br[c+1],")",sep=""))
+      legstr<-c(legstr,paste(br[c+1],sep=""))
     }
     aux<-which(to>=br[c] & 
                to<br[c+1] & 
@@ -710,7 +712,7 @@ plotsummary<-function(ixynp) {
       points(x[j][aux],y[j][aux],pch=2,col="black",cex=2)
     }
   }
-  legend(x="bottomright",fill=rev(col),legend=rev(legstr),cex=1.5)
+  legend(x="bottomright",fill=rev(col),legend=rev(legstr),cex=.8,horiz=T,x.intersp=0.25)
   dev.off()
   # debug: end
   return(0)
@@ -1757,6 +1759,7 @@ for (i in 1:argv$i.buddy) {
     dev.off()
     #
     susi<-which(dqcflag[ix]==buddy.code)
+<<<<<<< HEAD
     if (length(susi)>0) {
       for (j in 1:length(susi)) {
         jj<-susi[j]
@@ -1793,6 +1796,60 @@ for (i in 1:argv$i.buddy) {
                 breaks=c(0,10,25,50,100,250,500,750,1000,
                          1250,1500,1750,2000,2500,3000),
                 col=gray.colors(14))
+=======
+    for (j in 1:length(susi)) {
+      i<-susi[j]
+      if (length(i)==0) next
+      if (is.na(i)) next
+      f<-file.path(argv$debug.dir,
+           paste("poseidon_buddy_",
+                 formatC(i,width=5,flag="0"),
+                 ".png",sep=""))
+      png(file=f,width=800,height=800)
+      xmnj<-xtot[i]-argv$dr.buddy
+      xmxj<-xtot[i]+argv$dr.buddy
+      ymnj<-ytot[i]-argv$dr.buddy
+      ymxj<-ytot[i]+argv$dr.buddy
+      ee<-extent(xmnj,xmxj,ymnj,ymxj)
+      plot(xtot,xtot,
+           xlim=c(xmnj-1*argv$dr.buddy,xmxj+1*argv$dr.buddy),
+           ylim=c(ymnj-1*argv$dr.buddy,ymxj+1*argv$dr.buddy),
+           main="",
+           xlab="",
+           ylab="",cex=2,col="white")
+      brt<-c(0,0.1,0.5,1,2,3,4,5,6,7,8,9,10,3000)
+      br<-boxcox(brt,
+                 lambda=argv$boxcox.lambda)
+      col<-c("beige",rev(rainbow((length(br)-2))))
+      xmnj<-xtot[i]-2*argv$dr.buddy
+      xmxj<-xtot[i]+2*argv$dr.buddy
+      ymnj<-ytot[i]-2*argv$dr.buddy
+      ymxj<-ytot[i]+2*argv$dr.buddy
+      if (file.exists(argv$dem.file) & 
+          xmnj>=rdem.xmn & xmxj<=rdem.xmx & 
+          ymnj>=rdem.ymn & ymxj<=rdem.ymx ) {
+        ed<-extent(xmnj,xmxj,ymnj,ymxj)
+        dem0<-crop(rdem,ed)
+        image(dem0,add=T,
+              breaks=c(0,10,25,50,100,250,500,750,1000,
+                       1250,1500,1750,2000,2500,3000),
+              col=gray.colors(14))
+      }
+      for (c in 1:length(col)) {
+        if (c==1) {
+          legstr<-paste("<",brt[2],"mm",sep="")
+        } else if (c==length(col)) {
+          legstr<-c(legstr,paste(">=",brt[c],sep=""))
+        } else {
+          legstr<-c(legstr,paste("[",brt[c],",",brt[c+1],")",sep=""))
+        }
+        aux<-which(ttot>=br[c] & 
+                   ttot<br[c+1] & 
+                   is.na(dqcflag[ix]))
+        if (length(aux)>0) {
+          points(xtot[aux],ytot[aux],pch=19,col=col[c],cex=2)
+          points(xtot[aux],ytot[aux],pch=1,col="black",cex=2)
+>>>>>>> 3fc942103af372827cc682624536ff49b878bda0
         }
         for (c in 1:length(col)) {
           if (c==1) {
